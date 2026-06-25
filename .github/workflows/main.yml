@@ -1,0 +1,44 @@
+name: Coletar LP (5 min)
+
+on:
+  workflow_dispatch:
+    # Disparado pelo cron-job.org a cada 5 minutos via GitHub API.
+    # Também pode ser rodado manualmente pela aba Actions do GitHub.
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5   # Apenas 3 chamadas à API — deve terminar em < 30 segundos
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.5.0
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Rodar coleta
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+        run: python collector.py
+
+      - name: Commitar dados
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/player_current.csv data/lp_changes.csv
+          git diff --staged --quiet && echo "Nada para commitar." && exit 0
+          git commit -m "lp $(date -u +'%Y-%m-%dT%H:%M')"
+          git pull --rebase origin main
+          git push
