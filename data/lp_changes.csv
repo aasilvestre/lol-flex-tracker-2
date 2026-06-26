@@ -605,3 +605,5 @@ timestamp_utc,puuid,tier,old_lp,new_lp,lp_delta
 2026-06-25T23:55:41,BWjHpY0znolg74LDJdyoGXy-4b62qgbM9tcJ43I0Tw64-STJR6LKbmiKkXT2cE3LiMxUwKQOwL567w,master,44,17,-27
 2026-06-25T23:55:41,2l0hoogQdFtuMNavK_2GjPZvfvueHDqm_Wl4xDk4PS5p1UXcBaFg9K-fHYS_HisBpsrhPC3xj2zplg,master,31,2,-29
 2026-06-25T23:55:41,sONi4nlb2Noz4U2fLnwepQPuwF_p8idxgV1v6qOVq241CkEMVgzoRr5FuQssLx_oHpXnMsEbGNfMUg,master,25,0,-25
+2026-06-26T00:00:53,9BZiwljKPA33mp4YS-IR-FA3kMFVrsjMwaFZvatjLIteUKwnXAr35rYzEUCqlDSizeGmipCsYpxTtA,challenger,1593,1563,-30
+2026-06-26T00:00:53,kJ5Bte7ZfDWLVoVopZXT-BWNGsYlPnL88SvCXRnsP7-OL8JAXHQABiOhLrNXngpv3naqZoMc5h5myg,challenger,1029,1002,-27
