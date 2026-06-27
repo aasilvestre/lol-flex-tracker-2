@@ -4241,3 +4241,5 @@ timestamp_utc,puuid,tier,old_lp,new_lp,lp_delta
 2026-06-27T04:10:40,S3hexg1pZNE6HVGYOZuQgyLblgHa8lrU5tdmY_8rmuwVXjHX7mmYDfFfga_hVzJHAUruNLFT7YMQfw,master,0,29,29
 2026-06-27T04:10:40,JbGOjiAAgAhx-SxbcdH2-Dyj7dpG5aXyRY1ShIZ4HwWXpvIy3H30KYg2rnw1kW7o3C7-5oLpICHeKw,master,18,0,-18
 2026-06-27T04:10:40,1pRGS6lArbkIG6M6TVMWmVqxNL7t0d_aCvst1wl8sGzU9GpPhZoqUz5f1h7vhAzg8rZ1pBkrcrTgMQ,master,24,0,-24
+2026-06-27T04:15:34,otPzJnE8aFGYlV1pcydk7j7fsWBbNl8k_2JHP7PsWVE8YJ7qyv1yeSsFAgxyuwNE5bJp3ypcak0G5g,challenger,1297,1267,-30
+2026-06-27T04:15:34,EWQQrICcH9yq-ZWt5bxFrJbL7Pz9gcM43KbxGP9D08axydMh03lLUxI525KxOVeAYVrdv1fDuDwc5g,challenger,972,942,-30
