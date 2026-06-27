@@ -136,7 +136,6 @@ def compute_heatmap(changes_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFram
 # ── Carrega dados ─────────────────────────────────────────────────────────────
 current_df = load_current()
 changes_df = load_changes()
-pivot_df, series_df = compute_heatmap(changes_df)
 
 # ── Métricas rápidas ──────────────────────────────────────────────────────────
 c1, c2, c3, c4, c5 = st.columns(5)
@@ -177,21 +176,24 @@ with tab_heat:
         "não quando o jogo terminou)."
     )
 
+    # Filtro de tier — aplicado ANTES de computar o heatmap
+    tier_sel = st.multiselect(
+        "Filtrar por tier:",
+        options=["challenger", "gm", "master"],
+        default=["challenger", "gm", "master"],
+        format_func=lambda t: TIER_LABELS[t],
+        key="tier_heat",
+    )
+
+    changes_heat = changes_df[changes_df["tier"].isin(tier_sel)] if not changes_df.empty else changes_df
+    pivot_df, series_df = compute_heatmap(changes_heat)
+
     if pivot_df.empty:
         st.info(
             "Aguardando dados. São necessários ao menos 2 ciclos de coleta "
             "(10 minutos após a primeira execução)."
         )
     else:
-        # Filtro de tier
-        tier_sel = st.multiselect(
-            "Filtrar por tier (afeta série temporal e dados brutos):",
-            options=["challenger", "gm", "master"],
-            default=["challenger", "gm", "master"],
-            format_func=lambda t: TIER_LABELS[t],
-            key="tier_heat",
-        )
-
         # Labels do eixo X: mostra hora a cada 12 slots (1h)
         tick_positions = list(range(0, 288, 12))
         tick_labels    = [f"{h:02d}h" for h in range(24)]
@@ -261,7 +263,7 @@ with tab_serie:
             key="tier_serie",
         )
 
-        filtered = changes_df[changes_df["tier"].isin(tier_sel2)]
+        filtered = changes_df[changes_df["tier"].isin(tier_sel2)] if not changes_df.empty else changes_df
 
         # Série temporal de jogos detectados por hora
         st.subheader("Jogos detectados por hora (delta de LP)")
@@ -300,10 +302,11 @@ with tab_serie:
         st.plotly_chart(fig_vd, use_container_width=True)
 
         # Série da média móvel (o mesmo que alimenta o heatmap)
-        if not series_df.empty:
+        _, series_df2 = compute_heatmap(filtered)
+        if not series_df2.empty:
             st.subheader("Soma de jogos detectados — janela de 30 min (com deslocamento de -30 min)")
             fig_roll = px.line(
-                series_df.dropna(subset=["rolling"]),
+                series_df2.dropna(subset=["rolling"]),
                 x="window_inicio",
                 y="rolling",
                 labels={
