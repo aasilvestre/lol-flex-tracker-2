@@ -194,12 +194,22 @@ with tab_heat:
             "(10 minutos após a primeira execução)."
         )
     else:
-        # Labels do eixo X: mostra hora a cada 12 slots (1h)
-        tick_positions = list(range(0, 288, 12))
+        # Converte colunas de slot (0–287) para strings de horário ("19:20")
+        # assim o tooltip exibe o horário legível em vez do número do slot
+        def slot_to_timestr(slot: int) -> str:
+            h = slot // 12
+            m = (slot % 12) * 5
+            return f"{h:02d}:{m:02d}"
+
+        pivot_plot = pivot_df.copy()
+        pivot_plot.columns = [slot_to_timestr(int(c)) for c in pivot_plot.columns]
+
+        # Ticks: só mostra o rótulo a cada hora cheia (ex: "06:00", "07:00"...)
+        tick_positions = [slot_to_timestr(s) for s in range(0, 288, 12)]
         tick_labels    = [f"{h:02d}h" for h in range(24)]
 
         fig_heat = px.imshow(
-            pivot_df,
+            pivot_plot,
             labels=dict(
                 x="Horário (Brasília)",
                 y="",
@@ -226,24 +236,17 @@ with tab_heat:
         st.subheader("⚠️ Top 10 momentos mais movimentados")
         st.caption("Horários com mais partidas de elite em andamento (após deslocamento de -30 min).")
 
+        # pivot_plot já tem colunas como strings de horário
         top_slots = (
-            pivot_df.stack()
+            pivot_plot.stack()
             .reset_index()
-            .rename(columns={"dia_semana": "dia", "slot_5min": "slot", 0: "média"})
+            .rename(columns={"dia_semana": "dia", "slot_5min": "horário", 0: "média"})
             .sort_values("média", ascending=False)
             .head(10)
             .reset_index(drop=True)
         )
         top_slots.index += 1
-
-        # Converte slot → horário legível
-        def slot_to_time(slot: int) -> str:
-            h = slot // 12
-            m = (slot % 12) * 5
-            return f"{h:02d}:{m:02d}"
-
-        top_slots["horário"] = top_slots["slot"].apply(slot_to_time)
-        top_slots["média"]   = top_slots["média"].round(2)
+        top_slots["média"] = top_slots["média"].round(2)
         st.dataframe(
             top_slots[["dia", "horário", "média"]],
             use_container_width=True,
