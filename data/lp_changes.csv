@@ -17357,3 +17357,6 @@ timestamp_utc,puuid,tier,old_lp,new_lp,lp_delta
 2026-07-01T11:45:54,7Ivb4yYe0OfEt96cGwcvF8qVCPVEUjIFmfqc1paCfvt6hVtK1tcOFq5-rV3E8-lI0WcEtaVwEnDwkQ,master,176,146,-30
 2026-07-01T11:45:54,_h6HfreLQm3Yrx72dEc_c8u-SdXukIQqHCfwmgCP-VivBKKxvk7YBSbSzrHZa1lhjXTq5IHhsRbqXA,master,0,31,31
 2026-07-01T11:45:54,JBfCugtAKvedliKp1kQrHUMKBeOVeu1wBbomlFPmg43U_IVgokaJvROWvOeKAzhNIA5lFgoQcIJc1A,master,42,12,-30
+2026-07-01T12:10:38,7Ivb4yYe0OfEt96cGwcvF8qVCPVEUjIFmfqc1paCfvt6hVtK1tcOFq5-rV3E8-lI0WcEtaVwEnDwkQ,master,146,176,30
+2026-07-01T12:10:38,XaOJMUViZmAe_KS22AB28zh41fYL-nRCbiNzdzoCEhrGf22LCucgtSSCS57dUsr5AlYMotTmXA3L4A,master,5,34,29
+2026-07-01T12:10:38,_h6HfreLQm3Yrx72dEc_c8u-SdXukIQqHCfwmgCP-VivBKKxvk7YBSbSzrHZa1lhjXTq5IHhsRbqXA,master,31,1,-30
