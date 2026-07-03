@@ -25,7 +25,7 @@ TIER_FLOORS_CSV    = DATA_DIR / "tier_floors.csv"
 
 DIAS_PT    = {0: "Segunda", 1: "Terça", 2: "Quarta", 3: "Quinta",
               4: "Sexta",   5: "Sábado", 6: "Domingo"}
-ORDEM_DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+ORDEM_DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
 
 TIER_COLORS  = {"challenger": "#f59e0b", "gm": "#818cf8", "master": "#34d399"}
 TIER_LABELS  = {"challenger": "Challenger", "gm": "Grão-Mestre", "master": "Mestre"}
