@@ -1,4 +1,4 @@
-name: Coletar LP (5 min)
+name: Coletar dados Challenger/GM/Mestre Flex BR
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5   # Apenas 3 chamadas à API — deve terminar em < 30 segundos
+    timeout-minutes: 8   # cada ciclo leva ~3-5 min (só leitura de LP, sem Spectator)
 
     steps:
       - name: Checkout
@@ -28,17 +28,17 @@ jobs:
       - name: Instalar dependências
         run: pip install -r requirements.txt
 
-      - name: Rodar coleta
+      - name: Rodar coleta (um ciclo)
         env:
           RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
         run: python collector.py
 
-      - name: Commitar dados
+      - name: Commitar novo snapshot no repositório
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/player_current.csv data/lp_changes.csv
+          git add data/snapshots.csv data/player_lp.csv data/tier_floors.csv
           git diff --staged --quiet && echo "Nada para commitar." && exit 0
-          git commit -m "lp $(date -u +'%Y-%m-%dT%H:%M')"
+          git commit -m "snapshot $(date -u +'%Y-%m-%dT%H:%M')"
           git pull --rebase origin main
           git push
