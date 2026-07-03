@@ -253,10 +253,11 @@ with tab_heat:
         st.caption("Horários com mais partidas de elite em andamento (após deslocamento de -30 min).")
 
         # pivot_plot já tem colunas como strings de horário
+        # Renomeia por posição — compatível com todas as versões do pandas
+        top_slots = pivot_plot.stack().reset_index()
+        top_slots.columns = ["dia", "horário", "média"]
         top_slots = (
-            pivot_plot.stack()
-            .reset_index()
-            .rename(columns={"dia_semana": "dia", "slot_5min": "horário", 0: "média"})
+            top_slots
             .sort_values("média", ascending=False)
             .head(10)
             .reset_index(drop=True)
