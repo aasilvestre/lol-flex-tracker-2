@@ -14,12 +14,14 @@ from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 # ── Configuração ──────────────────────────────────────────────────────────────
 DATA_DIR           = Path(__file__).parent / "data"
 PLAYER_CURRENT_CSV = DATA_DIR / "player_current.csv"
 LP_CHANGES_CSV     = DATA_DIR / "lp_changes.csv"
+TIER_FLOORS_CSV    = DATA_DIR / "tier_floors.csv"
 
 DIAS_PT    = {0: "Segunda", 1: "Terça", 2: "Quarta", 3: "Quinta",
               4: "Sexta",   5: "Sábado", 6: "Domingo"}
@@ -67,6 +69,18 @@ def load_changes() -> pd.DataFrame:
     df["timestamp_utc"] = pd.to_datetime(df["timestamp_utc"], utc=True)
     df["timestamp_br"]  = df["timestamp_utc"].dt.tz_convert("America/Sao_Paulo")
     return df
+
+
+@st.cache_data(ttl=300)
+def load_tier_floors() -> pd.DataFrame:
+    if not TIER_FLOORS_CSV.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(TIER_FLOORS_CSV, parse_dates=["date_br"])
+    if df.empty:
+        return df
+    for col in ["challenger_floor", "gm_floor", "master_floor"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df.sort_values("date_br")
 
 
 @st.cache_data(ttl=60)
@@ -136,6 +150,7 @@ def compute_heatmap(changes_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFram
 # ── Carrega dados ─────────────────────────────────────────────────────────────
 current_df = load_current()
 changes_df = load_changes()
+floors_df  = load_tier_floors()
 
 # ── Métricas rápidas ──────────────────────────────────────────────────────────
 c1, c2, c3, c4, c5 = st.columns(5)
@@ -158,9 +173,10 @@ else:
 st.divider()
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab_heat, tab_serie, tab_jogadores, tab_raw = st.tabs([
+tab_heat, tab_serie, tab_floor, tab_jogadores, tab_raw = st.tabs([
     "🔥 Heatmap",
     "📈 Série Temporal",
+    "📉 Piso de Tier",
     "👤 Jogadores",
     "🗃️ Dados Brutos",
 ])
@@ -322,7 +338,98 @@ with tab_serie:
             st.plotly_chart(fig_roll, use_container_width=True)
 
 
-# ── Tab 3: Jogadores ──────────────────────────────────────────────────────────
+
+# ── Tab 3: Piso de Tier ───────────────────────────────────────────────────────
+with tab_floor:
+    st.subheader("📉 LP mínimo para cada tier — evolução diária")
+    st.caption(
+        "Capturado automaticamente às 23h40–23h55 (horário Brasília), "
+        "quando a Riot atualiza as listas. "
+        "O piso de **Challenger** é o LP do último colocado. "
+        "O piso de **GM** é o LP mínimo para não cair para Mestre."
+    )
+
+    if floors_df.empty:
+        st.info(
+            "Ainda sem dados de piso. O primeiro registro será capturado "
+            "automaticamente hoje entre 23h40 e 23h55 (horário Brasília)."
+        )
+    else:
+        tiers_floor = st.multiselect(
+            "Exibir tiers:",
+            options=["challenger", "gm", "master"],
+            default=["challenger", "gm"],
+            format_func=lambda t: TIER_LABELS[t],
+            key="tier_floor",
+        )
+
+        col_map = {
+            "challenger": "challenger_floor",
+            "gm":         "gm_floor",
+            "master":     "master_floor",
+        }
+
+        fig_floor = go.Figure()
+        for tier in tiers_floor:
+            col = col_map[tier]
+            if col in floors_df.columns:
+                fig_floor.add_trace(go.Scatter(
+                    x=floors_df["date_br"],
+                    y=floors_df[col],
+                    mode="lines+markers",
+                    name=TIER_LABELS[tier],
+                    line=dict(color=TIER_COLORS[tier], width=2),
+                    marker=dict(size=6),
+                    hovertemplate="%{x|%d/%m/%Y}<br>LP mínimo: <b>%{y}</b><extra></extra>",
+                ))
+
+        fig_floor.update_layout(
+            xaxis_title="Data",
+            yaxis_title="LP mínimo do tier",
+            height=380,
+            margin=dict(l=10, r=10, t=10, b=10),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+            hovermode="x unified",
+        )
+        st.plotly_chart(fig_floor, use_container_width=True)
+
+        # Métricas do dia mais recente
+        ultimo = floors_df.iloc[-1]
+        col1, col2, col3 = st.columns(3)
+        col1.metric(
+            "Piso Challenger hoje",
+            f"{int(ultimo['challenger_floor'])} LP" if pd.notna(ultimo.get("challenger_floor")) else "—",
+        )
+        col2.metric(
+            "Piso GM hoje",
+            f"{int(ultimo['gm_floor'])} LP" if pd.notna(ultimo.get("gm_floor")) else "—",
+        )
+        col3.metric(
+            "Piso Mestre hoje",
+            f"{int(ultimo['master_floor'])} LP" if pd.notna(ultimo.get("master_floor")) else "—",
+        )
+
+        # Tabela histórica
+        with st.expander("Ver histórico completo"):
+            rename_floor = {
+                "date_br":          "Data",
+                "challenger_floor": "Piso Challenger (LP)",
+                "gm_floor":         "Piso GM (LP)",
+                "master_floor":     "Piso Mestre (LP)",
+                "challenger_count": "Qtd Chall",
+                "gm_count":         "Qtd GM",
+                "master_count":     "Qtd Mestre",
+            }
+            cols_show = [c for c in rename_floor if c in floors_df.columns]
+            st.dataframe(
+                floors_df[cols_show].rename(columns=rename_floor)
+                .sort_values("Data", ascending=False)
+                .reset_index(drop=True),
+                use_container_width=True,
+            )
+
+
+# ── Tab 4: Jogadores ──────────────────────────────────────────────────────────
 with tab_jogadores:
     if current_df.empty:
         st.info("Aguardando primeira coleta...")
@@ -383,7 +490,7 @@ with tab_jogadores:
         st.plotly_chart(fig_lp_dist, use_container_width=True)
 
 
-# ── Tab 4: Dados Brutos ───────────────────────────────────────────────────────
+# ── Tab 5: Dados Brutos ───────────────────────────────────────────────────────
 with tab_raw:
     sub1, sub2 = st.tabs(["Mudanças de LP (recentes)", "Estado atual dos jogadores"])
 
